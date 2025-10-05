@@ -52,27 +52,29 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         )
         
     def do_GET(self):
-        if self.path == '/estudiantes':
-            self.response_handler(200, estudiantes)
-        elif self.path.startswith("/estudiantes/"):
+        if self.path.startswith("/estudiantes/"):
             query = self.path.split("/")[-1]
             try:
-                query=int(query)
+                query = int(query)
             except:
-                query=query
+                query = str(query)
             print(type(query))
             if type(query) == str:
-                estudiantes = self.estudiantesCarrera(query)
-                if estudiantes:
-                    self.response_handler(200, estudiantes)
+                estudiantes1 = self.estudiantesCarrera(query)
+                if estudiantes1:
+                    self.response_handler(200, estudiantes1)
                 else:
                     self.response_handler(204, [])
-            elif type(query)== int:
-                estudiante = self.estudiante_id(query)
-                if estudiante:
-                    self.response_handler(200, estudiante)
+            elif type(query) == int:
+                estudiante1 = self.estudiante_id(query)
+                if estudiante1:
+                    self.response_handler(200, estudiante1)
                 else:
-                    self.response_handler(204, [])
+                    self.response_handler(204,[])
+    
+        elif self.path == '/estudiantes':
+            self.response_handler(200, estudiantes)
+        
         
         if self.path == '/carreras':
             carreras = self.carreras()
