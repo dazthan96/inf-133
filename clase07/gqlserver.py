@@ -61,13 +61,22 @@ class CrearEstudiante(Mutation):
 class DeleteEstudiante(Mutation):
     class Arguments:
         id = Int()
+        carrera = String()
     estudiante = Field(Estudiante)
-    def mutate(root, info, id):
+
+    def mutate(root, info, id:int):
         for i, estudiante in enumerate(estudiantes):
             if estudiante.id == id:
                 estudiantes.pop(i)
                 return DeleteEstudiante(estudiante = estudiante)
         return None
+    def mutate(root, info, carrera:str):
+        for i, estudiante in enumerate(estudiantes):
+            if estudiante.carrera == carrera:
+                estudiantes.pop(i)
+                return DeleteEstudiante(estudiante=estudiante)
+        return None
+
 class UpdateEstudiante(Mutation):
     class Arguments:
         nombre = String()

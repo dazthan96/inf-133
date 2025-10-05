@@ -129,7 +129,7 @@ lista_actual = requests.post(url, json={'query':query_all})
 print(lista_actual.text)
 query_actualizar = """
 mutation{
-    updateEstudiante(nombre:"Jose", apellido:"Lopez", carrera:"Antropologia"){
+    updateEstudiante(nombre:"Jose", apellido:"Lopez", carrera:"Arquitectura"){
         estudiante{
             id
             nombre
@@ -140,7 +140,26 @@ mutation{
     
 }
 """
+
 response_update = requests.post(url, json={'query':query_actualizar})
 print(response_update.text)
+response_all = requests.post(url, json={'query':query_all})
+print(response_all.text)
+
+query_eliminar="""
+mutation{
+    deleteEstudiante(carrera:"Arquitectura"){
+        estudiante{
+            id
+            nombre
+            apellido
+            carrera
+        }
+    }
+}
+"""
+response_delete = requests.post(url, json = {'query':query_eliminar})
+print(response_delete.text)
+
 response_all = requests.post(url, json={'query':query_all})
 print(response_all.text)
