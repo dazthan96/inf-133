@@ -1,0 +1,88 @@
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+from urllib.parse import urlparse, urlsplit
+
+estudiantes = [
+    {
+        "id":1,
+        "nombre":"Pedrito",
+        "apellido": "Garcia",
+        "carrera":"Ingenieria de Sistemas"
+    },
+    {
+        "id":2,
+        "nombre": "Jose",
+        "apellido": "Lopez",
+        "carrera": "Arquitectura"
+    }
+]
+
+class StudentServices:
+    @staticmethod
+    def find_student(id:int):
+        return next(
+            (estudiante for estudiante in estudiantes if estudiante["id"] ==id), None
+        )
+    @staticmethod
+    def add_student(data):
+        data["id"] = len(estudiantes) + 1
+        estudiantes.append(data)
+        return estudiantes
+    @staticmethod
+    def filter_students(nombre:str):
+        return [
+            estudiante for estudiante in estudiantes if estudiante["nombre"]==nombre
+        ]
+    @staticmethod
+    def update_student(id, data):
+        estudiante = StudentServices.find_student(id)
+        if estudiante:
+            estudiante.update(data)
+            return estudiantes
+        else:
+            return None
+
+    @staticmethod
+    def delete_students():
+        estudiantes.clear()
+        return estudiantes
+    
+    @staticmethod
+    def delete_student_id():pass
+
+class HTTPResponseHandler:
+    @staticmethod
+    def handle_response(handler:BaseHTTPRequestHandler, status, data):
+        handler.send_response(status)
+        handler.send_header("Content-type", "application/json")
+        handler.end_headers()
+        handler.wfile.write(json.dumps(data).encode("utf-8"))
+class RESTRequestHandler(BaseHTTPRequestHandler):
+    def read_data(self):
+        content_length = int(self.headers["Content-Length"])
+        data = self.rfile.read(content_length)
+        data = json.loads(data.decode("utf-8"))
+        return data
+    
+    def do_POST(self):
+        if self.path=="/estudiantes":
+            data = self.read_data()
+            estudiantes = StudentServices.add_student(data)
+            HTTPResponseHandler.handle_response(self, 201, estudiantes)
+        else:
+            HTTPResponseHandler.handle_response(self, 404, {"Error":"Ruta no Existe"})
+
+
+def run_server(port=8000):
+    try:
+        server_address = ("", port)
+        httpd = HTTPServer(server_address, RESTRequestHandler)
+        print(f"Iniciando servidor web en http://localhost:{port}/")
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("Apagando servidor web")
+        httpd.socket.close()
+
+
+if __name__ == "__main__":
+    run_server()
