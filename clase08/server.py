@@ -1,6 +1,6 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
-from urllib.parse import urlparse, urlsplit
+from urllib.parse import urlparse, parse_qs
 
 estudiantes = [
     {
@@ -48,7 +48,11 @@ class StudentServices:
         return estudiantes
     
     @staticmethod
-    def delete_student_id():pass
+    def delete_student_id(id :int):
+        for i, estudiante in enumerate(estudiantes):
+            if estudiante["id"]==id:
+                estudiantes.pop(i)
+        return estudiantes
 
 class HTTPResponseHandler:
     @staticmethod
@@ -63,7 +67,30 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(content_length)
         data = json.loads(data.decode("utf-8"))
         return data
-    
+    def de_GET(self):
+        parsed_path = urlparse(self.path)
+        query_params = parse_qs(parsed_path.query)
+
+        if parsed_path.path == "/estudiantes":
+            if "nombre" in query_params:
+                nombre = query_params["nombre"][0]
+                estudiantes_filtrados = StudentServices.filter_students(nombre)
+
+                if estudiantes_filtrados != []:
+                    HTTPResponseHandler.handle_response(self, 200, estudiantes_filtrados)
+                else:
+                    HTTPResponseHandler.handle_response(self, 204,[])
+            else:
+                    HTTPResponseHandler.handle_response(self, 200, estudiantes)
+        elif self.path.startswith("/estudiantes/"):
+            id  = int (self.path.split("/")[-1])
+            estudiante = StudentServices.find_student(id)
+            if estudiante:
+                HTTPResponseHandler.handle_response(self, 200,[estudiante])
+            else:
+                HTTPResponseHandler.handle_response(self,204,[])
+        else:
+            HTTPResponseHandler.handle_response(self, 404,{"Error":"Ruta no existente"})
     def do_POST(self):
         if self.path=="/estudiantes":
             data = self.read_data()
