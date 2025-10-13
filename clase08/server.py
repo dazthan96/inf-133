@@ -67,10 +67,10 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(content_length)
         data = json.loads(data.decode("utf-8"))
         return data
-    def de_GET(self):
+    
+    def do_GET(self):
         parsed_path = urlparse(self.path)
         query_params = parse_qs(parsed_path.query)
-
         if parsed_path.path == "/estudiantes":
             if "nombre" in query_params:
                 nombre = query_params["nombre"][0]
@@ -91,6 +91,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
                 HTTPResponseHandler.handle_response(self,204,[])
         else:
             HTTPResponseHandler.handle_response(self, 404,{"Error":"Ruta no existente"})
+
     def do_POST(self):
         if self.path=="/estudiantes":
             data = self.read_data()
@@ -99,7 +100,30 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         else:
             HTTPResponseHandler.handle_response(self, 404, {"Error":"Ruta no Existe"})
 
-
+    def do_PUT(self):
+        if self.path.startswith("/estudiantes/"):
+            id = int(self.path.split("/")[-1])
+            data = self.read_data()
+            estudiantes = StudentServices.update_student(id, data)
+            if estudiantes:
+                HTTPResponseHandler.handle_response(self,200,estudiantes)
+            else:
+                HTTPResponseHandler.handle_response(self, 404, {"Error":"estudiante no encontrado"})
+        else:
+            HTTPResponseHandler.handle_response(self, 404, {"Error":"Ruta no Existenta"})
+    
+    def do_DELETE(self):
+        if self.path == "/estudiantes":
+            estudiantes = StudentServices.delete_students()
+            HTTPResponseHandler.handle_response(self,200, estudiantes)
+        elif self.path.startswith("/estudiantes/"):
+            id = int (self.path.split("/")[-1])
+            estudiantes = StudentServices.delete_student_id(id)
+            HTTPResponseHandler.handle_response(self, 200, estudiantes)
+        
+        else:
+            HTTPResponseHandler.handle_response(self, 404, {"Error":"Ruta no existente"})
+        
 def run_server(port=8000):
     try:
         server_address = ("", port)
